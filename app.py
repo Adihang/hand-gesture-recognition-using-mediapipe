@@ -7,9 +7,17 @@ import itertools
 from collections import Counter
 from collections import deque
 
+import platform
+import time
+from PIL import ImageFont, ImageDraw, Image
+from matplotlib import pyplot as plt
 import cv2 as cv
 import numpy as np
 import mediapipe as mp
+import json
+import requests
+import uuid
+import pytesseract
 
 from utils import CvFpsCalc
 from model import KeyPointClassifier
@@ -100,6 +108,8 @@ def main():
     mode = 0
     # 손가락 홀드
     finger_hold = True
+    
+    image_path = './images/output.png'
 
     while True:
         fps = cvFpsCalc.get()
@@ -116,6 +126,7 @@ def main():
             break
         image = cv.flip(image, 1)  # ミラー表示
         debug_image = copy.deepcopy(image)
+        real_image = cv.flip(debug_image, 1)
 
         # 감지 수행 #############################################################
         image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
@@ -168,17 +179,30 @@ def main():
                     finger_hold = False
                     pointer_hight = (landmark_list[8])[1]
                     print("포인팅 홀드 중")
-                    print(f"손가락 높이 : {pointer_hight}")
+                    
                     # 이미지 자르기
-                    cropped_image = image[:int(pointer_hight), :]
+                    cropped_image = real_image[:int(pointer_hight), :]
+                    cropped_image = cv.cvtColor(cropped_image, cv.COLOR_BGR2GRAY)
+                    cv.imwrite(image_path, cropped_image)
+                    
+                    # pytesseract.pytesseract.tesseract_cmd = r'C:/Program Files/Tesseract-OCR/tesseract'
+                    # text = pytesseract.image_to_string(cropped_image, lang='kor+eng')
+                    # print(text)
+                    # cv.putText(cropped_image, text, (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1, cv.LINE_AA)
+                    
+                    # 이미지 OCR 실행
+                    cropped_image = clova_ocr(image_path)
+                    cv.imwrite('./images/ocr.png', cropped_image)
                     cv.imshow('Cropped Image', cropped_image)
                 
                 if (not finger_hold) and (not any(element == 2 for element in hand_sign_history)):
                     print(hand_sign_history)
                     finger_hold = True
                     print("포인팅 홀드 해제")
-                    cv.destroyWindow('Cropped Image')
-                    
+                    try:
+                        cv.destroyWindow('Cropped Image')
+                    except:
+                        pass
                 
                 # 그리기
                 debug_image = draw_bounding_rect(use_brect, debug_image, brect)
@@ -201,7 +225,79 @@ def main():
 
     cap.release()
     cv.destroyAllWindows()
+    
+def put_text(image, text, x, y, color=(0, 255, 0), font_size=22):
+    if type(image) == np.ndarray:
+        color_coverted = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+        image = Image.fromarray(color_coverted)
+ 
+    if platform.system() == 'Darwin':
+        font = 'AppleGothic.ttf'
+    elif platform.system() == 'Windows':
+        font = 'malgun.ttf'
+        
+    image_font = ImageFont.truetype(font, font_size)
+    font = ImageFont.load_default()
+    draw = ImageDraw.Draw(image)
+ 
+    draw.text((x, y), text, font=image_font, fill=color)
+    
+    numpy_image = np.array(image)
+    opencv_image = cv.cvtColor(numpy_image, cv.COLOR_RGB2BGR)
+ 
+    return opencv_image
+    
+def clova_ocr(path):
+    config_data = process_json_file("./config.json")
+    clova_ocr_key = config_data["clova_ocr_key"]
+    clova_ocr_api_url = config_data["clova_ocr_api_url"]
+    files = [('file', open(path,'rb'))]
+    request_json = {'images': [{'format': 'png',
+                                'name': 'output'
+                                }],
+                    'requestId': str(uuid.uuid4()),
+                    'version': 'V2',
+                    'timestamp': int(round(time.time() * 1000))
+                    }
+    
+    payload = {'message': json.dumps(request_json).encode('UTF-8')}
+    
+    headers = {
+    'X-OCR-SECRET': clova_ocr_key,
+    }
+    
+    response = requests.request("POST", clova_ocr_api_url, headers=headers, data=payload, files=files)
+    
+    result = response.json()
+    img = cv.imread(path)
+    roi_img = img.copy()
+    
+    
+    
+    for field in result['images'][0]['fields']:
+        text = field['inferText']
+        vertices_list = field['boundingPoly']['vertices']
+        pts = [tuple(vertice.values()) for vertice in vertices_list]
+        topLeft = [int(_) for _ in pts[0]]
+        topRight = [int(_) for _ in pts[1]]
+        bottomRight = [int(_) for _ in pts[2]]
+        bottomLeft = [int(_) for _ in pts[3]]
+    
+        cv.line(roi_img, topLeft, topRight, (0,255,0), 2)
+        cv.line(roi_img, topRight, bottomRight, (0,255,0), 2)
+        cv.line(roi_img, bottomRight, bottomLeft, (0,255,0), 2)
+        cv.line(roi_img, bottomLeft, topLeft, (0,255,0), 2)
+        roi_img = put_text(roi_img, text, topLeft[0], topLeft[1] - 10, font_size=30)
+        
+        print(text)
+    
+    return roi_img
 
+# JSON 파일 읽기
+def process_json_file(file_path):
+    with open(file_path, 'r', encoding='utf-8') as json_file:
+        data = json.load(json_file)
+    return data
 
 def select_mode(key, mode):
     number = -1
@@ -507,7 +603,7 @@ def draw_landmarks(image, landmark_point):
 
 def draw_bounding_rect(use_brect, image, brect):
     if use_brect:
-        # 外接矩形
+        # 바운딩박스
         cv.rectangle(image, (brect[0], brect[1]), (brect[2], brect[3]),
                      (0, 0, 0), 1)
 
