@@ -130,3 +130,7 @@ dmypy.json
 
 # bat
 *.bat
+
+config.json
+
+msai-ocr-73208ebb7cf9.json
