@@ -174,6 +174,7 @@ def main():
                 
                 
                 hand_sign_history.append(hand_sign_id)
+                # 포인팅 홀드 감지
                 if finger_hold and all(element == 2 for element in hand_sign_history):
                     print(hand_sign_history)
                     finger_hold = False
@@ -182,19 +183,27 @@ def main():
                     
                     # 이미지 자르기
                     cropped_image = real_image[:int(pointer_hight), :]
-                    cropped_image = cv.cvtColor(cropped_image, cv.COLOR_BGR2GRAY)
-                    cv.imwrite(image_path, cropped_image)
+                    # 흑백으로 변환
+                    # cropped_image = cv.cvtColor(cropped_image, cv.COLOR_BGR2GRAY)
                     
+                    cv.imwrite(image_path, cropped_image)
+                    # 크롭된 이미지 파일 경로 './images/output.png'
+                    # 또는 cropped_image 를 그대로 사용해도 됨
+                    
+                    # pytesseract OCR 실행
                     # pytesseract.pytesseract.tesseract_cmd = r'C:/Program Files/Tesseract-OCR/tesseract'
                     # text = pytesseract.image_to_string(cropped_image, lang='kor+eng')
                     # print(text)
                     # cv.putText(cropped_image, text, (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1, cv.LINE_AA)
                     
-                    # 이미지 OCR 실행
-                    cropped_image = clova_ocr(image_path)
-                    cv.imwrite('./images/ocr.png', cropped_image)
+                    # clova OCR 실행
+                    # cropped_image = clova_ocr(image_path)
+                    # cv.imwrite('./images/ocr.png', cropped_image)
+                    
+                    # 이미지 표시
                     cv.imshow('Cropped Image', cropped_image)
                 
+                # 포인팅 해제 감지
                 if (not finger_hold) and (not any(element == 2 for element in hand_sign_history)):
                     print(hand_sign_history)
                     finger_hold = True
