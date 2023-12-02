@@ -1,3 +1,11 @@
+# equirements
+- mediapipe 0.8.4
+- OpenCV 4.6.0.66 or Later
+- Tensorflow 2.9.0 or Later
+- protobuf <3.20,>=3.9.2
+- scikit-learn 1.0.2 or Later
+- matplotlib 3.5.1 or Later
+
 # app.py 실행 시
 1. 미리 학습된 손모양 데이터 모델로 불러옴
 2. 연결된 웹캠 감지
