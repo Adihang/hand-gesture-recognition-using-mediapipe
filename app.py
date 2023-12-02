@@ -17,7 +17,7 @@ import mediapipe as mp
 import json
 import requests
 import uuid
-import pytesseract
+# import pytesseract
 
 from utils import CvFpsCalc
 from model import KeyPointClassifier
@@ -106,25 +106,31 @@ def main():
 
     #  ########################################################################
     mode = 0
+    number = -1
     # 손가락 홀드
     finger_hold = True
     
     image_path = './images/output.png'
+    
+    fkey = -1
 
     while True:
         fps = cvFpsCalc.get()
 
         # 키 처리(ESC：종료) #################################################
         key = cv.waitKey(10)
+        if key != -1 and fkey != key:
+            print(f"입력된 키 : {key}")
+            fkey = key
         if key == 27:  # ESC
             break
-        number, mode = select_mode(key, mode)
+        number, mode = select_mode(key, number, mode)
 
         # 카메라 캡쳐 #####################################################
         ret, image = cap.read()
         if not ret:
             break
-        image = cv.flip(image, 1)  # ミラー表示
+        image = cv.flip(image, 1)
         debug_image = copy.deepcopy(image)
         real_image = cv.flip(debug_image, 1)
 
@@ -149,9 +155,10 @@ def main():
                     landmark_list)
                 pre_processed_point_history_list = pre_process_point_history(
                     debug_image, point_history)
+                
                 # 학습 데이터 저장
-                # logging_csv(number, mode, pre_processed_landmark_list,
-                #             pre_processed_point_history_list)
+                logging_csv(number, mode, pre_processed_landmark_list,
+                            pre_processed_point_history_list)
 
                 # 핸드사인 분류
                 hand_sign_id = keypoint_classifier(pre_processed_landmark_list)
@@ -187,7 +194,7 @@ def main():
                     # cropped_image = cv.cvtColor(cropped_image, cv.COLOR_BGR2GRAY)
                     
                     cv.imwrite(image_path, cropped_image)
-                    # 크롭된 이미지 파일 경로 './images/output.png'
+                    # 크롭된 이미지 파일 경로 : './images/output.png'
                     # 또는 cropped_image 를 그대로 사용해도 됨
                     
                     # pytesseract OCR 실행
@@ -201,17 +208,17 @@ def main():
                     # cv.imwrite('./images/ocr.png', cropped_image)
                     
                     # 이미지 표시
-                    cv.imshow('Cropped Image', cropped_image)
+                    # cv.imshow('Cropped Image', cropped_image)
                 
                 # 포인팅 해제 감지
                 if (not finger_hold) and (not any(element == 2 for element in hand_sign_history)):
                     print(hand_sign_history)
                     finger_hold = True
                     print("포인팅 홀드 해제")
-                    try:
-                        cv.destroyWindow('Cropped Image')
-                    except:
-                        pass
+                    # try:
+                    #     cv.destroyWindow('Cropped Image')
+                    # except:
+                    #     pass
                 
                 # 그리기
                 debug_image = draw_bounding_rect(use_brect, debug_image, brect)
@@ -308,16 +315,18 @@ def process_json_file(file_path):
         data = json.load(json_file)
     return data
 
-def select_mode(key, mode):
-    number = -1
+def select_mode(key, number, mode):
     if 48 <= key <= 57:  # 0 ~ 9
         number = key - 48
-    if key == 110:  # n
+    if key == 97:  # a
         mode = 0
-    if key == 107:  # k
+        number = -1
+    if key == 115:  # s
         mode = 1
-    if key == 104:  # h
+    if key == 100:  # d
         mode = 2
+    if key == 102:  # f
+        mode = 3
     return number, mode
 
 
@@ -413,8 +422,14 @@ def logging_csv(number, mode, landmark_list, point_history_list):
         with open(csv_path, 'a', newline="") as f:
             writer = csv.writer(f)
             writer.writerow([number, *landmark_list])
+    if mode == 3 and (0 <= number <= 9):
+        csv_path = 'model/point_history_classifier/point_history.csv'
+        with open(csv_path, 'a', newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([number, *point_history_list])
     if mode == 2 and (0 <= number <= 9):
         csv_path = 'model/point_history_classifier/point_history.csv'
+        number += 10
         with open(csv_path, 'a', newline="") as f:
             writer = csv.writer(f)
             writer.writerow([number, *point_history_list])
@@ -655,14 +670,20 @@ def draw_info(image, fps, mode, number):
     cv.putText(image, "FPS:" + str(fps), (10, 30), cv.FONT_HERSHEY_SIMPLEX,
                1.0, (255, 255, 255), 2, cv.LINE_AA)
 
-    mode_string = ['Logging Key Point', 'Logging Point History']
-    if 1 <= mode <= 2:
+    mode_string = ['Logging Key Point 0~9', 'Logging Key Point 10~19', 'Logging Point History']
+    if 1 <= mode <= 3:
         cv.putText(image, "MODE:" + mode_string[mode - 1], (10, 90),
-                   cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1,
+                   cv.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 4,
+                   cv.LINE_AA)
+        cv.putText(image, "MODE:" + mode_string[mode - 1], (10, 90),
+                   cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2,
                    cv.LINE_AA)
         if 0 <= number <= 9:
             cv.putText(image, "NUM:" + str(number), (10, 110),
-                       cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1,
+                   cv.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 4,
+                   cv.LINE_AA)
+            cv.putText(image, "NUM:" + str(number), (10, 110),
+                       cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2,
                        cv.LINE_AA)
     return image
 
