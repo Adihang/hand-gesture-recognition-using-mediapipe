@@ -23,7 +23,7 @@
      - D key - keypoint 10~19 mode
      - F key - pointhistory mode
      - 0~9 key - label select
-7. mode와 label이 선택되면 프레임마다 데이터로 저장됨
+7. mode와 label이 선택되면 프레임마다 데이터로 수집됨
      - 선택이 되면 바로 데이터 수집이 시작되니 미리 손모양을 만들어놓고 선택할 것
 8. A를 입력하면 다시 standby mode로 데이터 수집이 정지됨
 
