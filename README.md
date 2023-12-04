@@ -26,3 +26,7 @@
 7. mode와 label이 선택되면 프레임마다 데이터로 저장됨
      - 선택이 되면 바로 데이터 수집이 시작되니 미리 손모양을 만들어놓고 선택할 것
 8. A를 입력하면 다시 standby mode로 데이터 수집이 정지됨
+
+# 수집한 데이터 학습방법
+1. keypoint_classification.ipynb (손 모양 학습)
+2. point_history_classification.ipynb (손 동작 학습)
