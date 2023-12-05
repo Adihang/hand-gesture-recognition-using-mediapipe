@@ -107,13 +107,12 @@ def main():
     #  ########################################################################
     mode = 0
     number = -1
-    # 손가락 홀드
-    finger_hold = True
-    
     image_path = './images/output.png'
     
+    fhold_hand_sign = -1
     fkey = -1
 
+    print("Start!")
     while True:
         fps = cvFpsCalc.get()
 
@@ -179,47 +178,47 @@ def main():
                 most_common_fg_id = Counter(
                     finger_gesture_history).most_common()
                 
-                
                 hand_sign_history.append(hand_sign_id)
+                
                 # 포인팅 홀드 감지
-                if finger_hold and all(element == 2 for element in hand_sign_history):
-                    print(hand_sign_history)
-                    finger_hold = False
-                    pointer_hight = (landmark_list[8])[1]
-                    print("포인팅 홀드 중")
+                hold_hand_sign = find_identical_element(hand_sign_history)
+                if (fhold_hand_sign != hold_hand_sign) and (hold_hand_sign is not None):
+                    fhold_hand_sign = hold_hand_sign
+                    hand_sign = keypoint_classifier_labels[hold_hand_sign]
+                    print(f"holding hand! {hand_sign}")
                     
-                    # 이미지 자르기
-                    cropped_image = real_image[:int(pointer_hight), :]
-                    # 흑백으로 변환
-                    # cropped_image = cv.cvtColor(cropped_image, cv.COLOR_BGR2GRAY)
-                    
-                    cv.imwrite(image_path, cropped_image)
-                    # 크롭된 이미지 파일 경로 : './images/output.png'
-                    # 또는 cropped_image 를 그대로 사용해도 됨
-                    
-                    # pytesseract OCR 실행
-                    # pytesseract.pytesseract.tesseract_cmd = r'C:/Program Files/Tesseract-OCR/tesseract'
-                    # text = pytesseract.image_to_string(cropped_image, lang='kor+eng')
-                    # print(text)
-                    # cv.putText(cropped_image, text, (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1, cv.LINE_AA)
-                    
-                    # clova OCR 실행
-                    # cropped_image = clova_ocr(image_path)
-                    # cv.imwrite('./images/ocr.png', cropped_image)
-                    
-                    # 이미지 표시
-                    # cv.imshow('Cropped Image', cropped_image)
+                    if hold_hand_sign == 1:
+                        pointer_hight = (landmark_list[8])[1]
+                        
+                        # 이미지 자르기
+                        cropped_image = real_image[:int(pointer_hight), :]
+                        # 흑백으로 변환
+                        # cropped_image = cv.cvtColor(cropped_image, cv.COLOR_BGR2GRAY)
+                        
+                        cv.imwrite(image_path, cropped_image)
+                        # 크롭된 이미지 파일 경로 : './images/output.png'
+                        # 또는 cropped_image 를 그대로 사용해도 됨
+                        
+                        # pytesseract OCR 실행
+                        # pytesseract.pytesseract.tesseract_cmd = r'C:/Program Files/Tesseract-OCR/tesseract'
+                        # text = pytesseract.image_to_string(cropped_image, lang='kor+eng')
+                        # print(text)
+                        # cv.putText(cropped_image, text, (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1, cv.LINE_AA)
+                        
+                        # clova OCR 실행
+                        # cropped_image = clova_ocr(image_path)
+                        # cv.imwrite('./images/ocr.png', cropped_image)
+                        
+                        # 이미지 표시
+                        cv.imshow('Cropped Image', cropped_image)
                 
-                # 포인팅 해제 감지
-                if (not finger_hold) and (not any(element == 2 for element in hand_sign_history)):
-                    print(hand_sign_history)
-                    finger_hold = True
-                    print("포인팅 홀드 해제")
-                    # try:
-                    #     cv.destroyWindow('Cropped Image')
-                    # except:
-                    #     pass
-                
+                    # 포인팅 해제 감지
+                    if hold_hand_sign != 1:
+                        try:
+                            cv.destroyWindow('Cropped Image')
+                        except:
+                            pass
+
                 # 그리기
                 debug_image = draw_bounding_rect(use_brect, debug_image, brect)
                 debug_image = draw_landmarks(debug_image, landmark_list)
@@ -241,6 +240,13 @@ def main():
 
     cap.release()
     cv.destroyAllWindows()
+
+# 모든 요소가 동일한지 확인
+def find_identical_element(lst):
+    if all(x == lst[0] for x in lst):
+        return lst[0]
+    else:
+        return None
     
 def put_text(image, text, x, y, color=(0, 255, 0), font_size=22):
     if type(image) == np.ndarray:
@@ -422,14 +428,14 @@ def logging_csv(number, mode, landmark_list, point_history_list):
         with open(csv_path, 'a', newline="") as f:
             writer = csv.writer(f)
             writer.writerow([number, *landmark_list])
-    if mode == 3 and (0 <= number <= 9):
-        csv_path = 'model/point_history_classifier/point_history.csv'
+    if mode == 2 and (0 <= number <= 9):
+        csv_path = 'model/keypoint_classifier/keypoint.csv'
+        number += 10
         with open(csv_path, 'a', newline="") as f:
             writer = csv.writer(f)
-            writer.writerow([number, *point_history_list])
-    if mode == 2 and (0 <= number <= 9):
+            writer.writerow([number, *landmark_list])
+    if mode == 3 and (0 <= number <= 9):
         csv_path = 'model/point_history_classifier/point_history.csv'
-        number += 10
         with open(csv_path, 'a', newline="") as f:
             writer = csv.writer(f)
             writer.writerow([number, *point_history_list])
