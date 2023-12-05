@@ -17,15 +17,18 @@
 
 # 학습 데이터 수집방법
 1. app.py 실행
-2. 수집할 데이터 선택
+2. 데이터 라벨 명 수정
+     - 'model/keypoint_classifier/keypoint_classifier_label.csv'
+     - 'model/point_history_classifier/point_history_classifier_label.csv'
+3. 수집할 데이터 선택
      - A key - standby mode
      - S key - keypoint 0~9 mode
      - D key - keypoint 10~19 mode
      - F key - pointhistory mode
      - 0~9 key - label select
-7. mode와 label이 선택되면 프레임마다 데이터로 저장됨
+4. mode와 label이 선택되면 프레임마다 데이터로 수집됨
      - 선택이 되면 바로 데이터 수집이 시작되니 미리 손모양을 만들어놓고 선택할 것
-8. A를 입력하면 다시 standby mode로 데이터 수집이 정지됨
+5. A를 입력하면 다시 standby mode로 데이터 수집이 정지됨
 
 # 수집한 데이터 학습방법
 1. keypoint_classification.ipynb (손 모양 학습)
