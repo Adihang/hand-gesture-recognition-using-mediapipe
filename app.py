@@ -136,7 +136,7 @@ def main():
         results = hands.process(image)
         image.flags.writeable = True
 
-        #  ####################################################################
+        # 손이 감지되었을 경우 ####################################################################
         if results.multi_hand_landmarks is not None:
             for hand_landmarks, handedness in zip(results.multi_hand_landmarks,
                                                   results.multi_handedness):
@@ -204,18 +204,18 @@ def main():
                         # cv.imwrite('./images/ocr.png', cropped_image)
                         
                         # 이미지 표시
-                        cv.imshow('Cropped Image', cropped_image)
+                        #cv.imshow('Cropped Image', cropped_image)
                         
                         gis = google_img_search()
                         absolute_path = os.path.join(os.getcwd(), image_path)
                         gis.search_google_images(absolute_path)
                 
                     # 포인팅 해제 감지
-                    if hold_hand_sign != 1:
-                        try:
-                            cv.destroyWindow('Cropped Image')
-                        except:
-                            pass
+                    # if hold_hand_sign != 1:
+                    #     try:
+                    #         cv.destroyWindow('Cropped Image')
+                    #     except:
+                    #         pass
 
                 # 그리기
                 debug_image = draw_bounding_rect(use_brect, debug_image, brect)
