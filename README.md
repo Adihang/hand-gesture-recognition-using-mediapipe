@@ -1,4 +1,4 @@
-# equirements
+# requirements
 - mediapipe 0.8.4
 - OpenCV 4.6.0.66 or Later
 - Tensorflow 2.9.0 or Later
