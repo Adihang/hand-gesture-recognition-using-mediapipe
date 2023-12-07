@@ -252,7 +252,7 @@ def main():
                 print(f"Obstacle detection!")
                 ob_detect = Obstacle_detection()
                 ob_detect_image = ob_detect.detect('images\street.png')
-                cv.imwrite('images\street.png', ob_detect_image)
+                cv.imwrite('images\Obstacle_detection.png', ob_detect_image)
             point_history.append([0, 0])
 
         debug_image = draw_point_history(debug_image, point_history)
