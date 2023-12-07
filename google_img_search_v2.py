@@ -23,6 +23,7 @@ import platform
 class google_img_search:
     # 구글 이미지 검색 함수 정의
     def search_google_images(self, Path):
+        Path = os.path.join(os.getcwd(), Path)
         ## 창이 닫히는 현상을 방지하고, 크롬드라이버 실행
         chrome_options = Options()
         chrome_options.add_experimental_option('detach', True)
@@ -72,7 +73,7 @@ class google_img_search:
             print(no_img)
             
             # 음성으로 이름 읽어주기.
-            try_again = 'try_again.mp3'
+            try_again = './mp3/try_again.mp3'
             tts_ko = gTTS(text = no_img , lang = 'ko')
             tts_ko.save(try_again)
             pygame.mixer.init()
@@ -88,7 +89,7 @@ class google_img_search:
             message = "이미지를 분석 중입니다. 잠시만요."
                             
             # 음성으로 이름 읽어주기.
-            waiting = 'wait.mp3'
+            waiting = './mp3/wait.mp3'
             tts_ko = gTTS(text = message , lang = 'ko')
             tts_ko.save(waiting)
             # playsound(waiting)
@@ -126,7 +127,7 @@ class google_img_search:
         
         
         # 음성으로 이름 읽어주기.
-        name_tts = 'name.mp3'
+        name_tts = './mp3/name.mp3'
         tts_ko = gTTS(text = "선택하신 것은" + it_is_name + "입니다." , lang = 'ko')
         tts_ko.save(name_tts)
         pygame.mixer.init()

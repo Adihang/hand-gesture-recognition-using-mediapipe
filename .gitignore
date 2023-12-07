@@ -1,5 +1,8 @@
 *.json
 
+# size limit
+model/obstacle_detection/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -19,6 +19,10 @@ from utils import CvFpsCalc
 from model import KeyPointClassifier
 from model import PointHistoryClassifier
 
+import warnings
+# 특정 경고를 무시하도록 설정
+warnings.filterwarnings("ignore", category=UserWarning, module="google.protobuf.symbol_database")
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -99,13 +103,14 @@ def main():
     # 핑거제스쳐 기록 ################################################
     finger_gesture_history = deque(maxlen=history_length)
     hand_sign_history = deque(maxlen=history_length)
+    hold_hand_sign_history = deque(maxlen=2)
 
     #  ########################################################################
     mode = 0
     number = -1
     image_path = 'images\output.png'
     
-    fhold_hand_sign = -1
+    hold_hand_sign_history.append(-1)
     fkey = -1
 
     print("Start!")
@@ -178,45 +183,50 @@ def main():
                 
                 # 포인팅 홀드 감지
                 hold_hand_sign = find_identical_element(hand_sign_history)
-                if (fhold_hand_sign != hold_hand_sign) and (hold_hand_sign is not None):
-                    fhold_hand_sign = hold_hand_sign
+                hold_hand_sign_history.append(hold_hand_sign)
+                if (hold_hand_sign_history[0] != hold_hand_sign_history[1]) and (hold_hand_sign is not None):
                     hand_sign = keypoint_classifier_labels[hold_hand_sign]
                     print(f"holding hand! {hand_sign}")
                     
-                    if hold_hand_sign == 1:
-                        pointer_hight = (landmark_list[8])[1]
+                    if hold_hand_sign == 6:
                         
-                        # 검지 기준 이미지 자르기
-                        cropped_image = real_image[:int(pointer_hight), :]
-                        # 흑백으로 변환
-                        # cropped_image = cv.cvtColor(cropped_image, cv.COLOR_BGR2GRAY)
-                        
+                        if landmark_list[12][0] >= landmark_list[9][0]:
+                            if landmark_list[11][0] >= landmark_list[3][0]:
+                                midle = landmark_list[11][0]
+                            else:
+                                midle = landmark_list[3][0]
+                            cropped_image = cv.flip(debug_image[landmark_list[12][1]:landmark_list[4][1], midle:], 1)
+                        else:
+                            if landmark_list[11][0] >= landmark_list[3][0]:
+                                midle = landmark_list[3][0]
+                            else:
+                                midle = landmark_list[11][0]
+                            cropped_image = cv.flip(debug_image[landmark_list[12][1]:landmark_list[4][1], :midle], 1)
                         cv.imwrite(image_path, cropped_image)
-                        # 크롭된 이미지 파일 경로 : './images/output.png'
-                        # 또는 cropped_image 를 그대로 사용해도 됨
-                        
-                        # OCR 실행 코드
-                        # ocr = OCR()
-                        # pytesseract OCR 실행
-                        # cropped_image, text = ocr.pyte(cropped_image)
-                        # clova OCR 실행
-                        # cropped_image, text = ocr.clova_ocr(image_path, process_json_file("./config.json"))
-                        # cv.imwrite('./images/ocr.png', cropped_image)
-                        
-                        # 이미지 표시
-                        #cv.imshow('Cropped Image', cropped_image)
-                        
+                        cv.imshow('Cropped Image', cropped_image)
                         gis = google_img_search()
-                        absolute_path = os.path.join(os.getcwd(), image_path)
-                        gis.search_google_images(absolute_path)
-                
-                    # 포인팅 해제 감지
-                    # if hold_hand_sign != 1:
-                    #     try:
-                    #         cv.destroyWindow('Cropped Image')
-                    #     except:
-                    #         pass
-
+                        try:
+                            gis.search_google_images(image_path)
+                        except:
+                            pass
+                    if hold_hand_sign != 6:
+                        try:
+                            cv.destroyWindow('Cropped Image')
+                        except:
+                            pass
+                    # OCR 실행 코드
+                    # ocr = OCR()
+                    # pytesseract OCR 실행
+                    # cropped_image, text = ocr.pyte(cropped_image)
+                    # clova OCR 실행
+                    # cropped_image, text = ocr.clova_ocr(image_path, process_json_file("./config.json"))
+                    # cv.imwrite('./images/ocr.png', cropped_image)
+                    
+                    # 이미지 표시
+                    #cv.imshow('Cropped Image', cropped_image)
+                    
+                    # gis = google_img_search()
+                    # gis.search_google_images(image_path)
                 # 그리기
                 debug_image = draw_bounding_rect(use_brect, debug_image, brect)
                 debug_image = draw_landmarks(debug_image, landmark_list)
