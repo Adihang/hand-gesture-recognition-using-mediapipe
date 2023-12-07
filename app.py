@@ -7,6 +7,8 @@ import itertools
 from collections import Counter
 from collections import deque
 from ocr import OCR
+
+from obstacle_detection import Obstacle_detection
 from google_img_search_v2 import google_img_search
 
 import cv2 as cv
@@ -104,13 +106,13 @@ def main():
     finger_gesture_history = deque(maxlen=history_length)
     hand_sign_history = deque(maxlen=history_length)
     hold_hand_sign_history = deque(maxlen=2)
+    hold_hand_sign_history.append(-1)
+    hold_hand_sign_history.append(-2)
 
     #  ########################################################################
     mode = 0
     number = -1
     image_path = 'images\output.png'
-    
-    hold_hand_sign_history.append(-1)
     fkey = -1
 
     print("Start!")
@@ -186,7 +188,8 @@ def main():
                 hold_hand_sign_history.append(hold_hand_sign)
                 if (hold_hand_sign_history[0] != hold_hand_sign_history[1]) and (hold_hand_sign is not None):
                     hand_sign = keypoint_classifier_labels[hold_hand_sign]
-                    print(f"holding hand! {hand_sign}")
+                    
+                    print(f"holding hand! {hand_sign} {hold_hand_sign_history}")
                     
                     if hold_hand_sign == 6:
                         
@@ -238,6 +241,14 @@ def main():
                     point_history_classifier_labels[most_common_fg_id[0][0]],
                 )
         else:
+            # one 손동작 감지 후 화면에서 손이 사라질 때 장애물 감지 시작
+            if hold_hand_sign_history[1] == 1:
+                hold_hand_sign_history.append(-3)
+                # cv.imwrite('images\street.png', real_image)
+                print(f"Obstacle detection!")
+                ob_detect = Obstacle_detection()
+                ob_detect_image = ob_detect.detect('images\street.png')
+                cv.imwrite('images\street.png', ob_detect_image)
             point_history.append([0, 0])
 
         debug_image = draw_point_history(debug_image, point_history)
