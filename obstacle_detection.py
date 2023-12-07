@@ -82,8 +82,6 @@ class Obstacle_detection:
         self.draw_boxes(image, filtered_boxes)
 
         # 결과를 화면에 표시
-        cv2.imshow('Image with Filtered Boxes', image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        cv2.imshow('Obstacle detection', image)
         
         return image

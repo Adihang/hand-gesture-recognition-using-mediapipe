@@ -188,8 +188,12 @@ def main():
                 hold_hand_sign_history.append(hold_hand_sign)
                 if (hold_hand_sign_history[0] != hold_hand_sign_history[1]) and (hold_hand_sign is not None):
                     hand_sign = keypoint_classifier_labels[hold_hand_sign]
+                    print(f"holding hand! {hand_sign}")
                     
-                    print(f"holding hand! {hand_sign} {hold_hand_sign_history}")
+                    try:
+                        cv.destroyWindow('Obstacle detection')
+                    except:
+                        pass
                     
                     if hold_hand_sign == 6:
                         
