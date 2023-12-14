@@ -1,7 +1,8 @@
 *.json
-
+mp4/
 # size limit
 model/obstacle_detection/
+model/vidio/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

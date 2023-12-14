@@ -6,6 +6,7 @@ import pytesseract
 import platform
 from PIL import ImageFont, ImageDraw, Image
 import numpy as np
+import time
 
 class OCR:
     def clova_ocr(self, path, config_data):

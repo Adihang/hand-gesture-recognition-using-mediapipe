@@ -42,15 +42,13 @@ class Obstacle_detection:
             cv2.putText(image, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
             cv2.putText(image, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
-    def detect(self, path):
+    def detect(self, orig_image):
         # 모델 불러오기
         device = torch.device("cpu")
         model = YOLO('./model/obstacle_detection/best.pt').to(device)
         names= {0: 'bicycle', 1: 'bus', 2: 'car', 3: 'carrier', 4: 'cat', 5: 'dog', 6: 'motorcycle', 7: 'movable_signage', 8: 'person', 9: 'scooter', 10: 'stroller', 11: 'truck', 12: 'wheelchair', 13: 'barricade', 14: 'bench', 15: 'bollard', 16: 'chair', 17: 'fire_hydrant', 18: 'kioskATM', 19: 'parking_meter', 20: 'pole', 21: 'potted_plant', 22: 'power_controller', 23: 'stop', 24: 'table', 25: 'traffic_light', 26: 'traffic_light_controller', 27: 'traffic_sign', 28: 'tree_trunk'}
 
         # 이미지 불러와서, 가로크기 640보다 큰 이미지는 가로크기 640으로 변경하여 저장
-        orig_image = cv2.imread(path)
-
         if orig_image.shape[1] > 640:
             image = self.resize_img(orig_image)
         else:

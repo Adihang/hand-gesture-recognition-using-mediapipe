@@ -8,6 +8,7 @@ from collections import Counter
 from collections import deque
 from ocr import OCR
 
+from vehicle_detection import Vehicle_detection
 from obstacle_detection import Obstacle_detection
 from google_img_search_v2 import google_img_search
 
@@ -16,6 +17,7 @@ import numpy as np
 import mediapipe as mp
 import json
 import os
+from ultralytics import YOLO
 
 from utils import CvFpsCalc
 from model import KeyPointClassifier
@@ -114,6 +116,10 @@ def main():
     number = -1
     image_path = 'images\output.png'
     fkey = -1
+    
+    last_detected = None
+    t = None
+    vehicle_model = YOLO('./model/vidio/best.pt')
 
     print("Start!")
     while True:
@@ -189,7 +195,6 @@ def main():
                 if (hold_hand_sign_history[0] != hold_hand_sign_history[1]) and (hold_hand_sign is not None):
                     hand_sign = keypoint_classifier_labels[hold_hand_sign]
                     print(f"holding hand! {hand_sign}")
-                    
                     try:
                         cv.destroyWindow('Obstacle detection')
                     except:
@@ -247,12 +252,15 @@ def main():
         else:
             # one 손동작 감지 후 화면에서 손이 사라질 때 장애물 감지 시작
             if hold_hand_sign_history[1] == 1:
-                hold_hand_sign_history.append(-3)
+                # hold_hand_sign_history.append(-3)
                 # cv.imwrite('images\street.png', real_image)
                 print(f"Obstacle detection!")
-                ob_detect = Obstacle_detection()
-                ob_detect_image = ob_detect.detect('images\street.png')
-                cv.imwrite('images\Obstacle_detection.png', ob_detect_image)
+                v_detect = Vehicle_detection()
+                last_detected, t, v_detect_image = v_detect.detect(last_detected, t, vehicle_model, real_image)
+                # ob_detect = Obstacle_detection()
+                # streetimage = cv.imread('images\street.png')
+                # ob_detect_image = ob_detect.detect(streetimage)
+                # cv.imwrite('images\Obstacle_detection.png', ob_detect_image)
             point_history.append([0, 0])
 
         debug_image = draw_point_history(debug_image, point_history)
