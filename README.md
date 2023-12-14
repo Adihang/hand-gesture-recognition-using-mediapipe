@@ -13,8 +13,10 @@
 4. 손모양이 특정 프레임동안 같은 손모양이 감지되었을 경우
      1. 손모양이 hold 이면 중지, 검지를 기준으로 이미지가 저장됨
           - google_img_search 작동
+          - ![google_img_search_demo](https://github.com/Adihang/hand-gesture-recognition-using-mediapipe/assets/56463432/78af6ce6-3256-4fdf-bfdd-94048bf63a64)
      2. 손모양이 one 이면 화면에서 손이 사라졌을때 이미지가 저장됨
           - Obstacle_detection 작동
+          - ![Vehicle_detection_demo (1)](https://github.com/Adihang/hand-gesture-recognition-using-mediapipe/assets/56463432/80294e57-e36e-4271-ba03-6b0f621ee97b)
 
 
 # 학습 데이터 수집방법
