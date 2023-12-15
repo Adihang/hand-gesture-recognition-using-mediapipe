@@ -5,6 +5,8 @@
 - protobuf <3.20,>=3.9.2
 - scikit-learn 1.0.2 or Later
 - matplotlib 3.5.1 or Later
+- model/obstacle_detection/best.pt : https://1drv.ms/u/s!Aic8Abrt7GADl9VQlXK6vpTLqPkh4Q?e=VrsQS8
+- model/vidio/best.pt : https://1drv.ms/u/s!Aic8Abrt7GADl9ZRS4WljXpjX0KprA?e=J6LnFX
 
 # app.py 실행 시
 1. 미리 학습된 손모양 데이터 모델로 불러옴
